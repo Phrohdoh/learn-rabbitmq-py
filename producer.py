@@ -3,20 +3,20 @@ import pika
 
 
 def main():
-    """Send a single message to a named queue"""
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
     channel = connection.channel()
-    channel.queue_declare(queue='task_queue', durable=True)
 
-    message = ' '.join(sys.argv[1:]) or 'This job will take 5 seconds: .....'
-    channel.basic_publish(exchange='',
-                          routing_key='task_queue',
-                          body=message,
-                          properties=pika.BasicProperties(
-                              delivery_mode=2
-                          ))
+    channel.exchange_declare(exchange='logs',
+                             exchange_type='direct')
 
-    print(f"[x] Sent {message}")
+    severity = sys.argv[1] if len(sys.argv) > 2 else 'info'
+    message = ' '.join(sys.argv[2:]) or 'Hello World!'
+
+    channel.basic_publish(exchange='logs',
+                          routing_key=severity,
+                          body=message)
+
+    print(f"[x] Sent {severity}: {message}")
     connection.close()
 
 if __name__ == '__main__':

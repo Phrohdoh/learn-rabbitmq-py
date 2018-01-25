@@ -8,22 +8,20 @@ $ python3 -m venv venv && . venv/bin/activate && pip install -r requirements.txt
 
 1) Run `rabbitmq-server` in a separate terminal
 
-2) Run how ever many consumers you want:
+2) Run one consumer for `error` logging:
 
 ```bash
-$ python consumer.py # Do this N times in N shells (or run in the background with `&`)
+$ python consumer.py error
+```
+
+3) Run another consumer for all severity levels:
+
+```bash
+$ python consumer.py info warning error
 ```
 
 3) Then run the producer:
 
 ```bash
-$ python producer.py ..... # NOTE: Each `.` represents how many seconds a job will take to run. Experiment with this value.
+$ python producer.py info "Hello, world!" # change `info` to either `warning` or `error` and see what happens.
 ```
-
-Pro-tip(tm): Run lots of producers!
-
-```bash
-$ for i in {1..10}; do python producer.py "$(seq -f '.' -s '' ${i})"; done
-```
-
-> NOTE: The above usage of `seq` only works with the BSD `seq` (which OS X / macOS ships with), gnu's `seq` will not work like this.

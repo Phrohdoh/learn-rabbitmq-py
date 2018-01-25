@@ -1,22 +1,33 @@
-import time
+import sys
 import pika
 
 
 def cb(ch, method, properties, body: bytes):
-    job_id = method.delivery_tag
-    print(f"[x] Received job {job_id}: {body}")
-    time.sleep(body.count(b'.'))
-    print(f"[x] Done with job {job_id}")
-    ch.basic_ack(delivery_tag=method.delivery_tag)
+    print(f"[x] {body}")
 
 
 def main():
     """Receive messages"""
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
     channel = connection.channel()
-    channel.queue_declare(queue='task_queue', durable=True)
-    channel.basic_qos(prefetch_count=1)
-    channel.basic_consume(cb, queue='task_queue')
+
+    channel.exchange_declare(exchange='logs',
+                             exchange_type='direct')
+
+    result = channel.queue_declare(exclusive=True)
+    queue_name = result.method.queue
+
+    severities = sys.argv[1:]
+    if not severities:
+        sys.stderr.write("Usage: %s [info] [warning] [error]\n" % sys.argv[0])
+        sys.exit(1)
+
+    for severity in severities:
+        channel.queue_bind(exchange='logs',
+                           queue=queue_name,
+                           routing_key=severity)
+
+    channel.basic_consume(cb, queue=queue_name, no_ack=True)
 
     print("[*] Waiting for messages. Press CTRL-C to exit.")
     channel.start_consuming()
