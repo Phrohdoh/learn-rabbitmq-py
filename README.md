@@ -25,3 +25,5 @@ Pro-tip(tm): Run lots of producers!
 ```bash
 $ for i in {1..10}; do python producer.py "$(seq -f '.' -s '' ${i})"; done
 ```
+
+> NOTE: The above usage of `seq` only works with the BSD `seq` (which OS X / macOS ships with), gnu's `seq` will not work like this.
